@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script
+      type="text/javascript"
+      src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"
+    ></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link
+      href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"
+      rel="stylesheet"
+      id="bootstrap-css"
+    />
+    <link rel="stylesheet" href="./todoList.css" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="todolist not-done">
+            <h1>TODO LIST</h1>
+            <input
+              id="content"
+              type="text"
+              class="form-control add-todo"
+              placeholder="할 일을 입력하고 엔터를 치세요"
+              autofocus
+            />
+            <hr />
+            <ul id="todoList" class="list-unstyled">
+              <li class="ui-state-default">
+                <div class="checkbox">
+                  <label>
+                    <input onchange="" type="checkbox" />
+                    <span>밥먹기</span>
+                  </label>
+                </div>
+              </li>
+            </ul>
+            <div class="todo-footer">
+              <strong>
+                <span id="todoCount" class="count-todos">1</span>
+              </strong>
+              항목 남았음
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="todolist">
+            <h1>DONE LIST</h1>
+            <ul id="doneList" class="list-unstyled">
+              <li>
+                <div class="checkbox">
+                  <label>
+                    <input
+                      onchange=""
+                      class="remove-item"
+                      type="checkbox"
+                      value=""
+                    />
+                    <span>잠자기</span>
+                  </label>
+                  <button
+                    onclick=""
+                    class="remove-item btn btn-default btn-xs pull-right"
+                  >
+                    <span class="glyphicon glyphicon-remove"></span>
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./todoList.js"></script>
+  <script>
+    console.log("스타일 참고", "https://bootsnipp.com/snippets/QbN51");
+
+    //데이터 가져오기
+    const init = () => {
+      const dataJson = localStorage.getItem("data");
+      const data = JSON.parse(dataJson);
+
+      const todoList = data.list.filter((todo) => todo.doneYn == "N");
+      const todoCount = todoList.length;
+      const doneList = data.list.filter((todo) => todo.doneYn == "Y");
+
+      const todoListTag = document.querySelector("#todoList");
+      const doneListTag = document.querySelector("#doneList");
+      const todoCountTag = document.querySelector("#todoCount")
+      
+      todoListTag.innerHTML = "";
+      doneListTag.innerHTML = "";
+      todoCountTag.innerHTML = "";
+
+      document.querySelector("#todoCount").innerHTML = todoCount;
+
+      for (const todo of todoList) {
+        todoListTag.insertAdjacentHTML(
+          "beforeend",
+          `
+          <li class="ui-state-default">
+            <div class="checkbox">
+              <label>
+                <input onchange="setDone(${todo.idx})" type="checkbox" />
+                <span>${todo.content}</span>
+              </label>
+            </div>
+          </li>
+          `
+        );
+      }
+
+      for (const todo of doneList) {
+        doneListTag.insertAdjacentHTML(
+          "beforeend",
+          `
+          <li>
+            <div class="checkbox">
+              <label>
+                <input
+                  onchange="setDone(${todo.idx})"
+                  class="remove-item"
+                  type="checkbox"
+                  value=""
+                />
+                <span>${todo.content}</span>
+              </label>
+              <button
+                onclick="setDelete(${todo.idx})"
+                class="remove-item btn btn-default btn-xs pull-right"
+              >
+                <span class="glyphicon glyphicon-remove"></span>
+              </button>
+            </div>
+          </li>
+          `
+        );
+      }
+
+    };
+    init();
+
+  
+    //데이터 추가하기
+    const contentTag = document.querySelector("#content")
+    contentTag.addEventListener("keyup", (e) => {
+      //엔터기 아니면 함수 종료
+      if(e.keyCode != 13){
+       return;       
+      }
+      //빈값이면 함수 종료
+      if(contentTag.value == ""){
+        alert("내용 입력해라.")
+        return;
+      }
+
+      const dataJson = localStorage.getItem("data");
+      const data = JSON.parse(dataJson);
+
+      const newIdx = data.globalCount + 1;
+
+      const todo = {
+        idx : newIdx,
+        content : contentTag.value,
+        doneYn : "N"
+      }
+
+      data.globalCount = newIdx;
+      data.list.push(todo);
+
+      localStorage.setItem("data",JSON.stringify(data));
+
+      contentTag.value = "";
+
+      init();
+
+    });
+
+
+    //데이터 수정하기
+    const setDone = (idx) =>{
+      const dataJson = localStorage.getItem("data");
+      const data = JSON.parse(dataJson);
+      
+      //객체idx로 array의 index를 찾아냄
+      const updateIdx = data.list.findIndex(todo => todo.idx == idx);
+
+      //data.list[updateIdx].doneYn =
+      //  data.list[updateIdx].doneYn == "N" ? "Y" : "N";
+
+      if(data.list[updateIdx].doneYn  == "N"){
+        data.list[updateIdx].doneYn ="Y";
+      }else{
+        data.list[updateIdx].doneYn ="N";
+      }
+
+      localStorage.setItem("data", JSON.stringify(data));
+
+      init();
+    }
+    //데이터 삭제하기
+    const setDelete = (idx) => {
+      const dataJson = localStorage.getItem("data");
+      const data = JSON.parse(dataJson);
+
+    //객체idx로 array의 index를 찾아냄
+    const deleteIdx = data.list.findIndex(todo => todo.idx == idx);
+
+      data.list.splice(deleteIdx, 1);
+
+    localStorage.setItem("data", JSON.stringify(data));
+
+    init();
+    }
+    
+  </script>
+</html>
